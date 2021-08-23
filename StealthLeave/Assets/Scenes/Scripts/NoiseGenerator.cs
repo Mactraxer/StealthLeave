@@ -1,74 +1,6 @@
 using UnityEngine;
-using System.Timers;
-
-enum DriverNoiseState
-{
-    idle, move
-}
-
-struct NoiseDriver
-{
-    float noiseValue;
-    float decreaseNoiseTick;
-    float decreaseNoiseSpeed;
-    float increaseNoiseTick;
-    float increaseNoiseSpeed;
-
-    Timer decreaseTimer;
-    Timer increaseTimer;
-    DriverNoiseState currentState
-    {
-        get { return currentState; }
-        set { 
-            if (value != currentState)
-            {
-                decreaseTimer.Stop();
-                decreaseTimer.Dispose();
-                increaseTimer.Stop();
-                increaseTimer.Dispose();
-
-                switch (value)
-                {
-                    case DriverNoiseState.idle:
-                        startDecreaseNoise();
-                        break;
-                    case DriverNoiseState.move:
-                        startIncreaseNoise();
-                        break;
-                }
-            } else
-            {
-
-            }
-        }
-    }
-
-    private void startDecreaseNoise()
-    {
-        decreaseTimer = new Timer(decreaseNoiseTick * 1000f);
-        decreaseTimer.Elapsed += decreaseNoise;
-        decreaseTimer.AutoReset = true;
-        decreaseTimer.Enabled = true;
-    }
-
-    private void decreaseNoise(System.Object source, ElapsedEventArgs e)
-    {
-        noiseValue -= decreaseNoiseSpeed;
-    }
-
-    private void startIncreaseNoise()
-    {
-        increaseTimer = new Timer(decreaseNoiseTick * 1000f);
-        increaseTimer.Elapsed += increaseNoise;
-        increaseTimer.AutoReset = true;
-        increaseTimer.Enabled = true;
-    }
-
-    private void increaseNoise(System.Object source, ElapsedEventArgs e)
-    {
-        noiseValue += increaseNoiseSpeed;
-    }
-}
+using System;
+using UnityEngine.UI;
 
 public class NoiseGenerator : MonoBehaviour
 {
@@ -90,11 +22,19 @@ public class NoiseGenerator : MonoBehaviour
     [SerializeField]
     int maxNoiseValue;
 
-    DriverNoiseState currentState;
+    [SerializeField]
+    Text noiseValueText;
+
+    NoiseDriver noiseDriver;
 
     void Start()
     {
-        currentState = DriverNoiseState.idle;
+        noiseDriver = new NoiseDriver(0f, 5f, 3f, 1f, 3f, 1f);
+        noiseDriver.MakeSound += HandleDriverSound;
+        noiseDriver.IncreasedNoiseValue += HandleIncreaseNoiseValue;
+        startIncreaseNoise();
+
+
     }
 
     // Update is called once per frame
@@ -102,13 +42,39 @@ public class NoiseGenerator : MonoBehaviour
     {
         if (startPosition.position != transform.position)
         {
-            currentState = DriverNoiseState.move;
-        } else
+            noiseDriver.CurrentState = DriverNoiseState.move;
+            Debug.Log(noiseDriver.CurrentState);
+        } 
+        else
         {
-            currentState = DriverNoiseState.idle;
+            noiseDriver.CurrentState = DriverNoiseState.idle;
+            Debug.Log(noiseDriver.CurrentState);
         }
 
     }
 
+    void HandleIncreaseNoiseValue(object sender, IncreaseNoiseTickEventArgs e)
+    {
+        noiseValueText.text = $"Уровень шума = {e.noiseValue}";
+    }
+
+    void HandleDriverSound(object sender, EventArgs e)
+    {
+        noiseValueText.text = $"Вас обнаружили!!";
+    }
+    // Для теста таймера 
+    private System.Timers.Timer decreaseTimer;
+    private System.Timers.Timer increaseTimer;
+
+    private void startIncreaseNoise()
+    {
+
+        increaseTimer = new System.Timers.Timer(2000);
+        increaseTimer.Elapsed += HandleDriverSound;
+        increaseTimer.AutoReset = true;
+        increaseTimer.Enabled = true;
+        increaseTimer.Start();
+
+    }
 
 }
