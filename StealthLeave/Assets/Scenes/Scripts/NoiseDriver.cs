@@ -1,5 +1,6 @@
 using System.Timers;
 using System;
+using UnityEngine;
 
 enum DriverNoiseState
 {
@@ -11,19 +12,29 @@ class IncreaseNoiseTickEventArgs : EventArgs
     public float noiseValue { get; set; }
 }
 
-struct NoiseDriver
+/// <summary>
+/// Класс работы с системой шума. Устанавливаем нужные параметры для набора значения шума и сброса и система с помошью таймеров следит за значением показателя шума и вызывает соответствующие ивенты
+/// Так как класс работает с Timer то он наследуется от MonoBehaviour, чтобы держать зависить на Timer пришлость прибегнуть к костылю в виде GameObject к которому добавляю Timer как компонетн и так же работаю с Timer 
+/// как с компонентом GameObject
+/// </summary>
+class NoiseDriver: MonoBehaviour
 {
-    private float noiseValue;
-    private float noiseMax;
-    private float decreaseNoiseTick;
-    private float decreaseNoiseSpeed;
-    private float increaseNoiseTick;
-    private float increaseNoiseSpeed;
+    private int noiseValue;
+    private int noiseMax;
+    private int decreaseNoiseTick;
+    private int decreaseNoiseSpeed;
+    private int increaseNoiseTick;
+    private int increaseNoiseSpeed;
+
+    //private System.Timers.Timer decreaseTimer;
+    //private System.Timers.Timer increaseTimer;
 
     private Timer decreaseTimer;
     private Timer increaseTimer;
+    private GameObject decreaseTimerHolder;
+    private GameObject increaseTimerHolder;
 
-    public NoiseDriver(float noiseValue, float noiseMax, float decreaseNoiseTick, float decreaseNoiseSpeed, float increaseNoiseTick, float increaseNoiseSpeed) : this()
+    public void SetupDriver(int noiseValue, int noiseMax, int decreaseNoiseTick, int decreaseNoiseSpeed, int increaseNoiseTick, int increaseNoiseSpeed)
     {
         this.noiseValue = noiseValue;
         this.noiseMax = noiseMax;
@@ -81,15 +92,23 @@ struct NoiseDriver
     }
     private void startDecreaseNoise()
     {
-
-        decreaseTimer = new Timer(decreaseNoiseTick * 1000f);
-        decreaseTimer.Elapsed += decreaseNoise;
-        decreaseTimer.AutoReset = true;
-        decreaseTimer.Enabled = true;
+        if (decreaseTimerHolder == null)
+        {
+            decreaseTimerHolder = new GameObject();
+            decreaseTimerHolder.AddComponent<Timer>();
+            decreaseTimerHolder.GetComponent<Timer>().endTime = decreaseNoiseTick;
+            decreaseTimerHolder.GetComponent<Timer>().IsRepeat = true;
+            decreaseTimerHolder.GetComponent<Timer>().EndEvent += decreaseNoise;
+            decreaseTimerHolder.GetComponent<Timer>().IsEnable = true;
+        } 
+        else
+        {
+            decreaseTimerHolder.GetComponent<Timer>().IsEnable = true;
+        }
 
     }
 
-    private void decreaseNoise(System.Object source, ElapsedEventArgs e)
+    private void decreaseNoise(System.Object source, EventArgs e)
     {
 
         noiseValue -= decreaseNoiseSpeed;
@@ -103,15 +122,24 @@ struct NoiseDriver
 
     private void startIncreaseNoise()
     {
-
-        increaseTimer = new Timer(increaseNoiseTick * 1000f);
-        increaseTimer.Elapsed += increaseNoise;
-        increaseTimer.AutoReset = true;
-        increaseTimer.Enabled = true;
+        if (increaseTimerHolder == null)
+        {
+            increaseTimerHolder = new GameObject();
+            increaseTimerHolder.AddComponent<Timer>();
+            increaseTimerHolder.GetComponent<Timer>().endTime = increaseNoiseTick;
+            increaseTimerHolder.GetComponent<Timer>().EndEvent += increaseNoise;
+            increaseTimerHolder.GetComponent<Timer>().IsRepeat = true;
+            increaseTimerHolder.GetComponent<Timer>().IsEnable = true;
+        } 
+        else
+        {
+            increaseTimerHolder.GetComponent<Timer>().IsEnable = true;
+        }
+        
 
     }
 
-    private void increaseNoise(System.Object source, ElapsedEventArgs e)
+    private void increaseNoise(System.Object source, EventArgs e)
     {
 
         if (noiseValue < noiseMax)
@@ -128,20 +156,18 @@ struct NoiseDriver
 
     private void stopDecreaseTimer()
     {
-        if (decreaseTimer != null)
+        if (decreaseTimerHolder != null)
         {
-            decreaseTimer.Stop();
-            decreaseTimer.Dispose();
+            decreaseTimerHolder.AddComponent<Timer>().IsEnable = false;
         }
         
     }
 
     private void stopIncreaseTimer()
     {
-        if (increaseTimer != null)
+        if (increaseTimerHolder != null)
         {
-            increaseTimer.Stop();
-            increaseTimer.Dispose();
+            increaseTimerHolder.GetComponent<Timer>().IsEnable = false;
         }
         
     }

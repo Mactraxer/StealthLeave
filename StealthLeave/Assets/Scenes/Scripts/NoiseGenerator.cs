@@ -25,13 +25,15 @@ public class NoiseGenerator : MonoBehaviour
     [SerializeField]
     Text noiseValueText;
 
-    NoiseDriver noiseDriver;
+    GameObject noiseDriverHolder;
 
     void Start()
     {
-        noiseDriver = new NoiseDriver(0f, 5f, 3f, 1f, 3f, 1f);
-        noiseDriver.MakeSound += HandleDriverSound;
-        noiseDriver.IncreasedNoiseValue += HandleIncreaseNoiseValue;
+        noiseDriverHolder = new GameObject();
+        noiseDriverHolder.AddComponent<NoiseDriver>();
+        noiseDriverHolder.GetComponent<NoiseDriver>().SetupDriver(0, 5, 3, 1, 3, 1);
+        noiseDriverHolder.GetComponent<NoiseDriver>().MakeSound += HandleDriverSound;
+        noiseDriverHolder.GetComponent<NoiseDriver>().IncreasedNoiseValue += HandleIncreaseNoiseValue;
         startIncreaseNoise();
 
 
@@ -42,13 +44,13 @@ public class NoiseGenerator : MonoBehaviour
     {
         if (startPosition.position != transform.position)
         {
-            noiseDriver.CurrentState = DriverNoiseState.move;
-            Debug.Log(noiseDriver.CurrentState);
+            noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState = DriverNoiseState.move;
+            Debug.Log(noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState);
         } 
         else
         {
-            noiseDriver.CurrentState = DriverNoiseState.idle;
-            Debug.Log(noiseDriver.CurrentState);
+            noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState = DriverNoiseState.idle;
+            Debug.Log(noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState);
         }
 
     }
@@ -71,9 +73,7 @@ public class NoiseGenerator : MonoBehaviour
 
         increaseTimer = new System.Timers.Timer(2000);
         increaseTimer.Elapsed += HandleDriverSound;
-        increaseTimer.AutoReset = true;
         increaseTimer.Enabled = true;
-        increaseTimer.Start();
 
     }
 
