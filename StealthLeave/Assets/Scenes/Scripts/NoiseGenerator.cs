@@ -12,17 +12,6 @@ public class NoiseGenerator : MonoBehaviour
     Transform currentPosition;
 
     [SerializeField]
-    float timeToSilence = 4f;
-    [SerializeField]
-    float currentIdleTime;
-
-    [SerializeField]
-    int noiseValue;
-
-    [SerializeField]
-    int maxNoiseValue;
-
-    [SerializeField]
     Text noiseValueText;
 
     GameObject noiseDriverHolder;
@@ -31,12 +20,9 @@ public class NoiseGenerator : MonoBehaviour
     {
         noiseDriverHolder = new GameObject();
         noiseDriverHolder.AddComponent<NoiseDriver>();
-        noiseDriverHolder.GetComponent<NoiseDriver>().SetupDriver(0, 5, 3, 1, 3, 1);
+        noiseDriverHolder.GetComponent<NoiseDriver>().SetupDriver(0, 4, 2, 1, 2, 1);
         noiseDriverHolder.GetComponent<NoiseDriver>().MakeSound += HandleDriverSound;
-        noiseDriverHolder.GetComponent<NoiseDriver>().IncreasedNoiseValue += HandleIncreaseNoiseValue;
-        startIncreaseNoise();
-
-
+        noiseDriverHolder.GetComponent<NoiseDriver>().ChangeNoiseValue += HandleChangeNoiseValue;
     }
 
     // Update is called once per frame
@@ -45,36 +31,22 @@ public class NoiseGenerator : MonoBehaviour
         if (startPosition.position != transform.position)
         {
             noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState = DriverNoiseState.move;
-            Debug.Log(noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState);
         } 
         else
         {
             noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState = DriverNoiseState.idle;
-            Debug.Log(noiseDriverHolder.GetComponent<NoiseDriver>().CurrentState);
         }
 
     }
 
-    void HandleIncreaseNoiseValue(object sender, IncreaseNoiseTickEventArgs e)
+    void HandleChangeNoiseValue(object sender, ChangeNoiseTickEventArgs e)
     {
-        noiseValueText.text = $"Уровень шума = {e.noiseValue}";
+        noiseValueText.text = $"Уровень шума = {e.NoiseValue}";
     }
 
     void HandleDriverSound(object sender, EventArgs e)
     {
         noiseValueText.text = $"Вас обнаружили!!";
-    }
-    // Для теста таймера 
-    private System.Timers.Timer decreaseTimer;
-    private System.Timers.Timer increaseTimer;
-
-    private void startIncreaseNoise()
-    {
-
-        increaseTimer = new System.Timers.Timer(2000);
-        increaseTimer.Elapsed += HandleDriverSound;
-        increaseTimer.Enabled = true;
-
     }
 
 }

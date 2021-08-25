@@ -1,0 +1,6 @@
+
+enum DriverNoiseState
+{
+    idle, move
+}
+
