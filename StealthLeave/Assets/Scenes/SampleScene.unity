@@ -249,6 +249,8 @@ GameObject:
   m_Component:
   - component: {fileID: 419814280}
   - component: {fileID: 419814279}
+  - component: {fileID: 419814282}
+  - component: {fileID: 419814281}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -284,6 +286,37 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &419814281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 419814278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a641b633164ad1b468a8d491e06cfdfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wallTile: {fileID: 11400000, guid: f90a7fe4ae920a6429151b9464e8b5e6, type: 2}
+  enterDoorTile: {fileID: 11400000, guid: 5b3e1c858eb759349b4b3dff052c6061, type: 2}
+  exitDoorTile: {fileID: 11400000, guid: e963e4652b237d64782adf809d3bda0e, type: 2}
+  blockTile: {fileID: 11400000, guid: 4865a1bf82331fc41b5a4018c7b6240c, type: 2}
+  roadTile: {fileID: 11400000, guid: fa625dbd6a25b304289f6ec7f8ab4f33, type: 2}
+--- !u!114 &419814282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 419814278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81062c1306304b84189a69276b29614d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levelWidth: 10
+  levelHeight: 10
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -885,7 +918,6 @@ GameObject:
   - component: {fileID: 1833330919}
   - component: {fileID: 1833330921}
   - component: {fileID: 1833330920}
-  - component: {fileID: 1833330922}
   m_Layer: 0
   m_Name: Tilemap
   m_TagString: Untagged
@@ -993,22 +1025,3 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!114 &1833330922
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1833330918}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81062c1306304b84189a69276b29614d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  levelWidth: 10
-  levelHeight: 10
-  wallTile: {fileID: 11400000, guid: 61304cfc421e3564aacaef0c8670618c, type: 2}
-  enterDoorTile: {fileID: 11400000, guid: b8f9deaf6aa5c2a4c95d77c1aa0e4710, type: 2}
-  exitDoorTile: {fileID: 11400000, guid: 09ffc611a386e8e4880fade52d67884e, type: 2}
-  blockTile: {fileID: 11400000, guid: 61304cfc421e3564aacaef0c8670618c, type: 2}
-  roadTile: {fileID: 11400000, guid: fa625dbd6a25b304289f6ec7f8ab4f33, type: 2}
