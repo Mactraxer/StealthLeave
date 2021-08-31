@@ -41,12 +41,18 @@ public class NoiseGenerator : MonoBehaviour
 
     void HandleChangeNoiseValue(object sender, ChangeNoiseTickEventArgs e)
     {
-        noiseValueText.text = $"Уровень шума = {e.NoiseValue}";
+        if (e != null)
+        {
+            //TODO - Вернуть Text
+            //Null Exseption из-за того что при создании героя не устанавлию значение Text
+            //noiseValueText.text = $"Уровень шума = {e.NoiseValue}";
+        }
+        
     }
 
     void HandleDriverSound(object sender, EventArgs e)
     {
-        noiseValueText.text = $"Вас обнаружили!!";
+        //noiseValueText.text = $"Вас обнаружили!!";
     }
 
 }

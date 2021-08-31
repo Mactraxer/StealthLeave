@@ -36,7 +36,6 @@ class Timer : MonoBehaviour
                 StopCoroutine(startTimer());
                 currentTime = 0;
             }
-            
         }
     }
 
@@ -49,8 +48,6 @@ class Timer : MonoBehaviour
             yield return new WaitForSeconds(endTime);
             EndEvent(this, EventArgs.Empty);
         }
-
-        
     }
 
 }
