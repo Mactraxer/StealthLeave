@@ -1,6 +1,7 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-class Rectangle
+public class Rectangle
 {
     public int x, y, width, height;
 
@@ -13,7 +14,7 @@ class Rectangle
     }
 }
 
-class Point
+public class Point
 {
 
     public int x, y;
@@ -25,16 +26,16 @@ class Point
     }
 
 }
-class Leaf
+public class Leaf
 {
-    private const int minLeafSize = 6;
+    private const int minLeafSize = 3;
 
     public Rectangle size;
 
     public Leaf leftChild;
     public Leaf rightChild;
-    public Rectangle room;
-    public Rectangle[] halls;
+    public Rectangle hall;
+
 
     public Leaf(Rectangle size)
     {
@@ -52,11 +53,11 @@ class Leaf
 
         if (size.width > size.height && size.width / size.height >= 1.25)
         {
-            splitH = true;
+            splitH = false;
         } 
         else if (size.height > size.width && size.height / size.width >= 1.25)
         {
-            splitH = false;
+            splitH = true;
         }
 
         int max = (splitH ? size.height : size.width) - minLeafSize;
@@ -79,171 +80,27 @@ class Leaf
             rightChild = new Leaf(new Rectangle(size.x + split, size.y, size.width - split, size.height));
         }
 
+        CreateHall(leftChild.size, rightChild.size);
+
         return true;
 
     }
 
-    public void CreateRoom()
-    {
-        if (leftChild != null || rightChild != null)
-        {
-            if (leftChild != null)
-            {
-                leftChild.CreateRoom();
-            }
-            else if (rightChild != null)
-            {
-                rightChild.CreateRoom();
-            }
-
-            if (leftChild != null && rightChild != null)
-            {
-                CreateHall(leftChild.GetRoom(), rightChild.GetRoom());
-            }
-        }
-        else
-        {
-            Point roomSize;
-            Point roomPos;
-
-            //TODO Возможно стоит переделать. Нужли ли здесь Point?
-            roomSize = new Point(Random.Range(3, size.width - 2), Random.Range(3, size.height - 2));
-            roomPos = new Point(Random.Range(1, size.width - roomSize.x - 1), Random.Range(1, size.height - roomSize.y - 1));
-            room = new Rectangle(size.x + roomPos.x, size.y + roomPos.y, roomSize.x, roomSize.y);
-        }
-    }
-
-    public Rectangle GetRoom()
-    {
-        if (room != null)
-        {
-            return room;
-        }
-        else
-        {
-            Rectangle lRoom = null;
-            Rectangle rRoom = null;
-
-            if (leftChild != null)
-            {
-                lRoom = leftChild.GetRoom();
-            }
-
-            if (rightChild != null)
-            {
-                rRoom = rightChild.GetRoom();
-            }
-
-            if (lRoom == null && rRoom == null)
-            {
-                return null;
-            }
-            else if (rRoom == null)
-            {
-                return lRoom;
-            }
-            else if (lRoom == null)
-            {
-                return rRoom;
-            }
-            else if (Random.Range(0f,1f) > 0.5f)
-            {
-                return rRoom;
-            }
-            else
-            {
-                return lRoom;
-            }
-        }
-    }
-
     public void CreateHall(Rectangle lRoom, Rectangle rRoom)
     {
-        Rectangle[] halls = new Rectangle[2];
+        if (lRoom == null || rRoom == null) return;
 
-        Point point1 = new Point(Random.Range(lRoom.x + 1, lRoom.x + lRoom.width - 2), Random.Range(lRoom.y + 1, lRoom.y + lRoom.height - 2));
-        Point point2 = new Point(Random.Range(rRoom.x + 1, rRoom.x + rRoom.width - 2), Random.Range(rRoom.y + 1, rRoom.y + rRoom.height - 2));
+        if (lRoom.x == rRoom.x)
+        {
+            int hallWidth = Random.Range(1, lRoom.width - 1);
+            hall = new Rectangle((lRoom.x + lRoom.width / 2) - hallWidth / 2, rRoom.y, hallWidth, 1);
+        } 
+        else if (lRoom.y == rRoom.y)
+        {
+            int hallHeight = Random.Range(1, rRoom.height - 1);
+            hall = new Rectangle(rRoom.x, (rRoom.y + rRoom.height / 2) - hallHeight / 2, 1, hallHeight);
+        }
 
-        int w = point2.x - point1.x;
-        int h = point2.y - point1.y;
-
-        if (w < 0)
-        {
-            if (h < 0)
-            {
-                if (Random.Range(0f, 1f) < 0.5f)
-                {
-                    halls[0] = new Rectangle(point2.x, point1.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point2.x, point2.y, 1, Mathf.Abs(h));
-                }
-                else
-                {
-                    halls[0] = new Rectangle(point2.x, point2.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point1.x, point2.y, 1, Mathf.Abs(h));
-                }
-            }
-            else if (h > 0)
-            {
-                if (Random.Range(0f, 1f) < 0.5f)
-                {
-                    halls[0] = new Rectangle(point2.x, point1.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point2.x, point1.y, 1, Mathf.Abs(h));
-                }
-                else
-                {
-                    halls[0] = new Rectangle(point2.x, point2.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point1.x, point1.y, 1, Mathf.Abs(h));
-                }
-            }
-            else
-            {
-                halls[0] = new Rectangle(point2.x, point2.y, Mathf.Abs(w), 1);
-            }
-        }
-        else if (w > 0)
-        {
-            if (h < 0)
-            {
-                if (Random.Range(0f, 1f) < 0.5f)
-                {
-                    halls[0] = new Rectangle(point1.x, point2.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point1.x, point2.y, 1, Mathf.Abs(h));
-                }
-                else
-                {
-                    halls[0] = new Rectangle(point1.x, point1.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point2.x, point2.y, 1, Mathf.Abs(h));
-                }
-            }
-            else if (h > 0)
-            {
-                if (Random.Range(0f, 1f) < 0.5f)
-                {
-                    halls[0] = new Rectangle(point1.x, point1.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point2.x, point1.y, 1, Mathf.Abs(h));
-                }
-                else
-                {
-                    halls[0] = new Rectangle(point1.x, point2.y, Mathf.Abs(w), 1);
-                    halls[1] = new Rectangle(point1.x, point1.y, 1, Mathf.Abs(h));
-                }
-            }
-            else
-            {
-                halls[0] = new Rectangle(point1.x, point1.y, Mathf.Abs(w), 1);
-            }
-        }
-        else
-        {
-            if (h < 0)
-            {
-                halls[0] = new Rectangle(point2.x, point2.y, 1, Mathf.Abs(h));
-            }
-            else if (h > 0)
-            {
-                halls[0] = new Rectangle(point1.x, point1.y, 1, Mathf.Abs(h));
-            }
-        }
     }
 
 }

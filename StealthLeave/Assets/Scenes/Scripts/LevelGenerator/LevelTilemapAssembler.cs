@@ -1,10 +1,16 @@
 using UnityEngine.Tilemaps;
 using UnityEngine;
+using System.Collections.Generic;
+
+enum TilemapType
+{
+    block, road, door
+}
 
 public class LevelTilemapAssembler : MonoBehaviour
 {
     [SerializeField]
-    TileBase wallTile;
+    GameObject hero;
 
     [SerializeField]
     TileBase enterDoorTile;
@@ -21,27 +27,28 @@ public class LevelTilemapAssembler : MonoBehaviour
     private Tilemap blockTilemap;
     private Tilemap doorsTilemap;
     private Tilemap roadTilemap;
-    private Tilemap wallTilemap;
-    //TODO объеденить в один tilemap двери
-    private Tilemap enterDoorTilemap;
-    private Tilemap exitDoorTilemap;
     
     // Start is called before the first frame update
     void Start()
     {
-        LevelMatrix.OnAction += LevelMatrix_OnAction;
+        LevelGenerator.OnAction += LevelGenerated;
     }
 
-    private void LevelMatrix_OnAction(int[,] level)
+    private void LevelGenerated(List<Leaf> level, int width, int height)
     {
-        roadTilemap = CreateTilemap(level, LevelSign.road, "roadTilemap", roadTile);
-        wallTilemap = CreateTilemap(level, LevelSign.wall, "wallTilemap", wallTile);
-        enterDoorTilemap = CreateTilemap(level, LevelSign.enterDoor, "enterDoorTilemap", enterDoorTile);
-        exitDoorTilemap = CreateTilemap(level, LevelSign.exitDoor, "exitDoorTilemap", exitDoorTile);
-        blockTilemap = CreateTilemap(level, LevelSign.block, "blockTilemap", blockTile);
+        CreateTileMaps();
+        AssembleLevelByLeafs(level, width, height);
+        
     }
 
-    private Tilemap CreateTilemap(int[,] level,LevelSign levelSign, string name, TileBase tile)
+    private void CreateTileMaps()
+    {
+        roadTilemap = CreateTilemap("roadTilemap", TilemapType.road);
+        doorsTilemap = CreateTilemap("doorsTilemap", TilemapType.door);
+        blockTilemap = CreateTilemap("blockTilemap", TilemapType.block);
+    }
+
+    private Tilemap CreateTilemap(string name, TilemapType type)
     {
         GameObject tilemapGameObject = new GameObject(name);
         Tilemap tilemap = tilemapGameObject.AddComponent<Tilemap>();
@@ -51,21 +58,159 @@ public class LevelTilemapAssembler : MonoBehaviour
         tilemapGameObject.transform.SetParent(this.transform);
         tilemapRenderer.sortingLayerName = "Main";
 
-        for (int y = 0; y < level.GetUpperBound(0) + 1; y++)
+        switch (type)
         {
-            for (int x = 0; x < level.GetUpperBound(1) + 1; x++)
+            case TilemapType.block:
+                tilemapGameObject.AddComponent<TilemapCollider2D>();
+                tilemapGameObject.layer = 6;//Notmovement layer
+                break;
+            case TilemapType.door:
+                tilemapRenderer.sortingOrder = 1;
+                break;
+            default:
+                break;
+        }
+        
+
+        return tilemap;
+    }
+
+    private void AssembleLevelByLeafs(List<Leaf> leafs, int levelWidth, int levelHeight)
+    {
+        foreach (var item in leafs)
+        {
+            SetTilesToRectagle(item.size);
+
+        }
+
+        foreach (var item in leafs)
+        {
+            SetTileForHalls(item.hall);
+        }
+
+        GenerateDoor(levelWidth, levelHeight);
+        FillBackgroundTile(levelWidth, levelHeight);
+    }
+
+    private void FillBackgroundTile(int levelWidth, int levelHeight)
+    {
+        for (int y = 1; y < levelHeight; y++)
+        {
+            for (int x = 1; x < levelWidth; x++)
             {
-                if (level[y, x] == (int)levelSign)
+                if (blockTilemap.GetTile(new Vector3Int(y, x, 0)) == null)
                 {
-                    int xCoordinate = x - (level.GetUpperBound(0) + 1) / 2;
-                    int yCoordinate = level.GetUpperBound(1) / 2 - y;
-                    tilemap.SetTile(new Vector3Int(xCoordinate, yCoordinate, 0), tile);
+                    roadTilemap.SetTile(new Vector3Int(y, x, 0), roadTile);
                 }
 
             }
         }
+    }
 
-        return tilemap;
+    private void SetTileForHalls(Rectangle hall)
+    {
+        if (hall == null)
+        {
+            return;
+        }
+
+
+        for (int y = hall.y; y < hall.y + hall.height; y++)
+        {
+            for (int x = hall.x; x < hall.x + hall.width; x++)
+            {
+                blockTilemap.SetTile(new Vector3Int(x, y, 0), null);
+            }
+        }
+
+
+    }
+
+    private void SetTilesToRectagle(Rectangle bounds)
+    {
+        if (bounds == null)
+        {
+            return;
+        }
+
+        for (int y = bounds.y; y <= bounds.y + bounds.height; y++)
+        {
+            for (int x = bounds.x; x <= bounds.x + bounds.width; x++)
+            {
+                if (y == bounds.y || y == bounds.y + bounds.height || x == bounds.x || x == bounds.x + bounds.width)
+                {
+                    blockTilemap.SetTile(new Vector3Int(x, y, 0), blockTile);
+                }
+
+            }
+        }
+    }
+
+
+    private void GenerateDoor(int levelWidth, int levelHeight)
+    {
+        bool isVertical = Random.Range(0, 2) == 0;
+
+        if (isVertical)
+        {
+            int topDoorXPosition = Random.Range(1, levelWidth);
+            int bottomDoorXPosition = Random.Range(1, levelWidth);
+            doorsTilemap.SetTile(new Vector3Int(topDoorXPosition, levelHeight, 0), enterDoorTile);
+            doorsTilemap.SetTile(new Vector3Int(bottomDoorXPosition, 0, 0), enterDoorTile);
+
+            TileBase mayBlockTile = blockTilemap.GetTile(new Vector3Int(topDoorXPosition, levelHeight - 1, 0));
+
+            if (mayBlockTile == blockTile)
+            {
+                blockTilemap.SetTile(new Vector3Int(topDoorXPosition, levelHeight - 1, 0), null);
+            }
+
+            mayBlockTile = blockTilemap.GetTile(new Vector3Int(bottomDoorXPosition, 1, 0));
+
+            if (mayBlockTile == blockTile)
+            {
+                blockTilemap.SetTile(new Vector3Int(bottomDoorXPosition, 1, 0), null);
+            }
+
+            GameObject instantiatedGameObjecHero = Instantiate(hero, new Vector3(bottomDoorXPosition + 0.5f, 1 + 0.5f, 0), Quaternion.identity);
+            SpriteRenderer heroSpriteRenderer = instantiatedGameObjecHero.GetComponent<SpriteRenderer>();
+            if (heroSpriteRenderer != null)
+            {
+                heroSpriteRenderer.sortingOrder = 2;
+            }
+        }
+        else
+        {
+            int leftDoorYPosition = Random.Range(1, levelHeight);
+            int rightDoorYPosition = Random.Range(1, levelHeight);
+            doorsTilemap.SetTile(new Vector3Int(levelWidth, rightDoorYPosition, 0), enterDoorTile);
+            doorsTilemap.SetTile(new Vector3Int(0, leftDoorYPosition, 0), enterDoorTile);
+
+            TileBase mayBlockTile = blockTilemap.GetTile(new Vector3Int(1, leftDoorYPosition, 0));
+
+            if (mayBlockTile == blockTile)
+            {
+                blockTilemap.SetTile(new Vector3Int(1, leftDoorYPosition, 0), null);
+
+            }
+
+            mayBlockTile = blockTilemap.GetTile(new Vector3Int(levelWidth - 1, rightDoorYPosition, 0));
+
+            if (mayBlockTile == blockTile)
+            {
+                blockTilemap.SetTile(new Vector3Int(levelWidth - 1, rightDoorYPosition, 0), null);
+            }
+
+            GameObject instantiatedGameObjecHero = Instantiate(hero, new Vector3(1f + 0.5f, leftDoorYPosition + 0.5f, 0), Quaternion.identity);
+            SpriteRenderer heroSpriteRenderer = instantiatedGameObjecHero.GetComponent<SpriteRenderer>();
+            if (heroSpriteRenderer != null)
+            {
+                heroSpriteRenderer.sortingOrder = 2;
+            }
+        }
+
+
+
     }
 
 }
